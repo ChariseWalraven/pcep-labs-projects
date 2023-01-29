@@ -46,7 +46,7 @@ def invalid_input_error(messsage='Please enter the number of the cell.', notify=
 def display_board(board):
     # The function accepts one parameter containing the board's current status
     # and prints it out to the console.
-    print(compose_board(formatting, board), end='\r')
+    print(compose_board(formatting, board))
 
 
 def get_user_input(attempt=0) -> int:
