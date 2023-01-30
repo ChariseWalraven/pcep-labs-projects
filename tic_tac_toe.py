@@ -167,10 +167,15 @@ def game():
         if victory_for(board, 'O'):
             print('You win! 🎉')
             break
-        display_board(board)
+        elif is_draw(board):
+            print('It\'s a draw!')
+            break
         draw_move(board)
         if victory_for(board, 'X'):
             print('Computer wins! 🤖')
+            break
+        elif is_draw(board):
+            print('It\'s a draw!')
             break
 
 
