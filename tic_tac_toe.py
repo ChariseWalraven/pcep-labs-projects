@@ -148,7 +148,7 @@ def draw_move(board):
     # get random move
     move = randrange(1, 10)
     # check if move valid
-    while not move_is_valid(move,notify=False):
+    while not move_is_valid(move, notify=False):
         move = randrange(1, 10)
     else:
         # update board
