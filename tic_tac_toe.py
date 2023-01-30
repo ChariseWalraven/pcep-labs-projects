@@ -157,6 +157,7 @@ def draw_move(board):
 
 
 def game():
+    print(f'{"="*12+" INFO "+"="*12}\nComputer is "X", player is "O"', end=f'\n{"="*30}\n\n')
     print('Computer moves first...')
     update_board(board, 5, is_computer=True)
     while True:
