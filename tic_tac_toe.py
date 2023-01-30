@@ -1,12 +1,18 @@
 from random import randrange
 
-board = [
-    [i+1+(3*j) for i in range(3)] for j in range(3)
-]
+# TODO: check file for immutability and convert as many functions as possible to pure functions
+# NOTE: currently implementing FP practices -> https://www.geeksforgeeks.org/functional-programming-in-python/
+# BUG: disqualification doesn't work. Is it really necessary?
+# BUG: printing many lines results in the board being lost somewhere above the last line
 
 # get a list of tuples representing the value of the cell, the column, and the row
 indices = [(i+1+(3*j), i, j) for j in range(3) for i in range(3)]
 
+
+def new_board():
+    return [
+        [i+1+(3*j) for i in range(3)] for j in range(3)
+    ]
 
 def formatting():
     border = ('+-------')*3+'+'
@@ -28,14 +34,18 @@ def compose_board(formatting, board):
 
 
 def update_board(board, move, is_computer=False):
-    # find the correct cell
-    # update the cell with the correct symbol
-    (val, col_index, row_index) = list(
-        filter(lambda z: z[0] == move, indices))[0]
-    row = board[row_index]
-    cell = row[col_index]
-    symbol = 'X' if is_computer else 'O'
-    board[row_index][col_index] = symbol
+    # determine which sign to use
+    sign = 'X' if is_computer else 'O'
+
+    return list(
+        map(lambda row: 
+            list(
+                map(lambda cell: 
+                    sign if cell == move else cell, row
+                    )
+                ), board
+            )
+        )
 
 
 def invalid_input_error(messsage='Please enter the number of the cell.', notify=True):
@@ -65,7 +75,7 @@ def get_user_input(attempt=0) -> int:
     return move
 
 
-def move_is_valid(move, notify=True):
+def move_is_valid(board, move, notify=True) -> bool:
     # must be an int
     # must be an empty cell
     is_valid = False
@@ -81,19 +91,20 @@ def move_is_valid(move, notify=True):
     return is_valid
 
 
-def enter_move(board):
+def enter_move(board) -> (list, bool):
     # The function accepts the board's current status, asks the user about their move,
     # checks the input, and updates the board according to the user's decision.
+    # NOTE: there's gotta be a better way to catch disqualifications from get_user_input
     move = get_user_input()
+    is_valid = True
     if move == -1:
-        return False
-    while not move_is_valid(move):
+        is_valid = False
+    while not move_is_valid(board, move):
         move = get_user_input()
         if move == -1:
-            return False
+            is_valid = False
     else:
-        update_board(board, move)
-    return True
+        return (update_board(board, move), is_valid)
 
 
 def make_list_of_free_fields(board):
@@ -148,21 +159,23 @@ def draw_move(board):
     # get random move
     move = randrange(1, 10)
     # check if move valid
-    while not move_is_valid(move, notify=False):
+    while not move_is_valid(board, move, notify=False):
         move = randrange(1, 10)
     else:
         # update board
         print(f'Computer chose {move}.')
-        update_board(board, move, is_computer=True)
+        return update_board(board, move, is_computer=True)
 
 
 def game():
-    print(f'{"="*12+" INFO "+"="*12}\nComputer is "X", player is "O"', end=f'\n{"="*30}\n\n')
+    print(f'{"="*12+" INFO "+"="*12}\nComputer is "X", player is "O"',
+          end=f'\n{"="*30}\n\n')
     print('Computer moves first...')
-    update_board(board, 5, is_computer=True)
+    board = update_board(new_board(), 5, is_computer=True)
     while True:
         display_board(board)
-        if not enter_move(board):
+        (board, valid_move) = enter_move(board)
+        if not valid_move:
             print('Computer wins. 🤖')
             break
         if victory_for(board, 'O'):
@@ -171,7 +184,7 @@ def game():
         elif is_draw(board):
             print('It\'s a draw!')
             break
-        draw_move(board)
+        board = draw_move(board)
         if victory_for(board, 'X'):
             print('Computer wins! 🤖')
             break
