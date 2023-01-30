@@ -110,8 +110,6 @@ def make_list_of_free_fields(board):
 def victory_for(board, sign) -> bool:
     # The function analyzes the board's status in order to check if
     # the player using 'O's or 'X's has won the game
-    # check diagonals
-    # if symbol present, return cell value
     bin_cells = list(map(lambda row: list(
         map(lambda cell: 1 if cell == sign else 0, row)), board))
 
@@ -125,11 +123,9 @@ def victory_for(board, sign) -> bool:
         row = bin_cells[i]
         diagonal1.append(row[i])
         diagonal2.append(row[-i-1])
-        # get all columns
         col = []
         for row in bin_cells:
             col.append(row[i])
-        # check columns
         if col == [1, 1, 1]:
             return True
         cols.append(col)
