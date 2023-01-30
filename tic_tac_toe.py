@@ -1,28 +1,17 @@
+import time
+
 from random import randrange
 
 # TODO: check file for immutability and convert as many functions as possible to pure functions
 # NOTE: currently implementing FP practices -> https://www.geeksforgeeks.org/functional-programming-in-python/
-# BUG: disqualification doesn't work. Is it really necessary?
-# BUG: printing many lines results in the board being lost somewhere above the last line
-
-# get a list of tuples representing the value of the cell, the column, and the row
-indices = [(i+1+(3*j), i, j) for j in range(3) for i in range(3)]
-
 
 def new_board():
     return [
         [i+1+(3*j) for i in range(3)] for j in range(3)
     ]
 
-def formatting():
-    border = ('+-------')*3+'+'
-    blank_line = '|       '*3+'|'
-    cell_separator = '|'
-    cell_spacing = '   '
-    return (border, blank_line, cell_separator, cell_spacing)
 
-
-def compose_board(formatting, board):
+def compose_board(board, formatting):
     (border, blank_line, c_sep, c_space) = formatting()
     disp = border
     for row in board:
@@ -38,38 +27,45 @@ def update_board(board, move, is_computer=False):
     sign = 'X' if is_computer else 'O'
 
     return list(
-        map(lambda row: 
+        map(lambda row:
             list(
-                map(lambda cell: 
+                map(lambda cell:
                     sign if cell == move else cell, row
                     )
                 ), board
             )
         )
 
-
-def invalid_input_error(messsage='Please enter the number of the cell.', notify=True):
+# BUG: printing many lines results in the board being lost somewhere above the last line
+def invalid_input_error(message='Please enter the number of the cell.', notify=True):
     if notify:
-        print('Input invalid.', messsage)
+        print('Input invalid.', message)
 
 
 def display_board(board):
     # The function accepts one parameter containing the board's current status
     # and prints it out to the console.
-    print(compose_board(formatting, board))
+    def formatting():
+        border = ('+-------')*3+'+'
+        blank_line = '|       '*3+'|'
+        cell_separator = '|'
+        cell_spacing = '   '
+        return (border, blank_line, cell_separator, cell_spacing)
+
+    print(compose_board(board, formatting))
 
 
+# BUG: disqualification doesn't work. Is it really necessary?
 def get_user_input(attempt=0) -> int:
     move = -1
     if 4 > attempt > 2:
         print('Last attempt. One more incorrect input will result in disqualification.')
-
     try:
         move = int(input('Enter your move:'))
     except Exception as e:
         if attempt >= 3:
             invalid_input_error('You\'re disqualified.')
-            return move
+            return -1
         invalid_input_error()
         get_user_input(attempt+1)
     return move
@@ -99,12 +95,10 @@ def enter_move(board) -> (list, bool):
     is_valid = True
     if move == -1:
         is_valid = False
+        return (board, is_valid)
     while not move_is_valid(board, move):
         move = get_user_input()
-        if move == -1:
-            is_valid = False
-    else:
-        return (update_board(board, move), is_valid)
+    return (update_board(board, move), is_valid)
 
 
 def make_list_of_free_fields(board):
@@ -170,27 +164,36 @@ def draw_move(board):
 def game():
     print(f'{"="*12+" INFO "+"="*12}\nComputer is "X", player is "O"',
           end=f'\n{"="*30}\n\n')
-    print('Computer moves first...')
-    board = update_board(new_board(), 5, is_computer=True)
-    while True:
+    turn = 0
+    board = new_board()
+    in_play = True
+    while in_play:
+        turn += 1
+        valid_move = True
+        if turn == 1:
+            # computer always moves first
+            print('Computer moves first...')
+            board = update_board(board, 5, is_computer=True)
+        elif turn % 2 == 0:
+            # player's turn
+            (board, valid_move) = enter_move(board)
+            if not valid_move:
+                print('Computer wins. 🤖')
+                in_play = False
+            elif victory_for(board, 'O'):
+                print('You win! 🎉')
+                in_play = False
+        else:
+            # computer's turn
+            board = draw_move(board)
+            if victory_for(board, 'X'):
+                print('Computer wins! 🤖')
+                in_play = False
+        if is_draw(board):
+            print('It\'s a draw!')
+            in_play = False
+
         display_board(board)
-        (board, valid_move) = enter_move(board)
-        if not valid_move:
-            print('Computer wins. 🤖')
-            break
-        if victory_for(board, 'O'):
-            print('You win! 🎉')
-            break
-        elif is_draw(board):
-            print('It\'s a draw!')
-            break
-        board = draw_move(board)
-        if victory_for(board, 'X'):
-            print('Computer wins! 🤖')
-            break
-        elif is_draw(board):
-            print('It\'s a draw!')
-            break
 
 
 # main program
