@@ -139,6 +139,14 @@ def victory_for(board, sign) -> bool:
         return True
 
 
+def is_draw(board):
+    # check if draw
+    filled_cells = map(lambda row: list(
+        filter(lambda cell: type(cell) == str, row)), board)
+    filled_cells = [cell for row in filled_cells for cell in row]
+    return True if len(filled_cells) == 9 else False
+
+
 def draw_move(board):
     # The function draws the computer's move and updates the board.
     # get random move
